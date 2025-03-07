@@ -12,5 +12,6 @@ jobs:
           sudo apt install guix
           # guix pull
           git clone https://gitlab.com/nonguix/nonguix
+          cd nonguix
           guix system image --image-type=iso9660 nongnu/system/install.scm
           ls -al
