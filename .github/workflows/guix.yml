@@ -2,15 +2,31 @@ name: guix
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/guix.yml'
   
 jobs:
   guix:
     runs-on: ubuntu-latest
     steps:
       - run: |
+          mkdir -p ~/.config/guix
+          cat > ~/.config/guix/channels.scm <<EOF
+          (cons* (channel
+                  (name 'nonguix)
+                  (url "https://gitlab.com/nonguix/nonguix")
+                  ;; Enable signature verification:
+                  (introduction
+                   (make-channel-introduction
+                    "897c1a470da759236cc11798f4e0a5f7d4d59fbc"
+                    (openpgp-fingerprint
+                     "2A39 3FFF 68F4 EF7A 3D29  12AF 6F51 20A0 22FB B2D5"))))
+                 %default-channels)
+          EOF
           sudo apt update
           sudo apt install guix
-          # guix pull
+          guix pull
           git clone https://gitlab.com/nonguix/nonguix
           cd nonguix
           guix system image --image-type=iso9660 nongnu/system/install.scm
