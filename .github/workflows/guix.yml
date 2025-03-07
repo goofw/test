@@ -1,0 +1,16 @@
+name: guix
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  guix:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          sudo apt update
+          sudo apt install guix
+          # guix pull
+          git clone https://gitlab.com/nonguix/nonguix
+          guix system image --image-type=iso9660 nongnu/system/install.scm
+          ls -al
