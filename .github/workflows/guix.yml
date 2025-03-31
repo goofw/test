@@ -11,10 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          sudo apt install -y expect
           curl -fsSL "https://git.savannah.gnu.org/gitweb/?p=guix.git;a=blob_plain;f=etc/guix-install.sh;hb=HEAD" > guix.sh
           chmod +x guix.sh
-          sudo expect -c "spawn ./guix.sh; expect return; send \r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; interact"
+          tmux new -d sudo ./guix.sh
+          sleep 2
+          tmux send Enter
+          while true; do command -v guix && break || { tmux capturep -p; sleep 10; tmux send Y Enter; }; done
           guix install glibc-locales
           export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
           
