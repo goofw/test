@@ -11,18 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          #curl -fsSL "https://git.savannah.gnu.org/gitweb/?p=guix.git;a=blob_plain;f=etc/guix-install.sh;hb=HEAD" > guix.sh
-          #chmod +x guix.sh
-          #tmux new -d
-          #tmux send "sudo ./guix.sh" Enter
-          #sleep 2
-          #tmux send Enter
-          #while true; do command -v guix && break || { sleep 10; tmux send Y Enter; tmux capturep -p; }; done
-          #guix install glibc-locales
-          #export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+          curl -fsSL "https://git.savannah.gnu.org/gitweb/?p=guix.git;a=blob_plain;f=etc/guix-install.sh;hb=HEAD" > guix.sh
+          chmod +x guix.sh
+          tmux new -d
+          tmux send "sudo ./guix.sh" Enter
+          sleep 2
+          tmux send Enter
+          while true; do command -v guix && break || { sleep 10; tmux send Y Enter; tmux capturep -p; }; done
+          guix install glibc-locales
+          export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
 
-          sudo apt update
-          sudo apt install -y guix
+          #sudo apt update
+          #sudo apt install -y guix
           
           mkdir -p ~/.config/guix
           cat > ~/.config/guix/channels.scm <<EOF
@@ -39,12 +39,15 @@ jobs:
           EOF
 
           sudo systemctl status guix-daemon
-          cat /usr/lib/systemd/system/guix-daemon.service
+          cat /etc/systemd/system/guix-daemon.service
           wget https://substitutes.nonguix.org/signing-key.pub
           sudo guix archive --authorize < signing-key.pub
-          sudo sed -i "s|--substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org'|--substitute-urls='https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org'|g" /usr/lib/systemd/system/guix-daemon.service
+          URLS="https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org"
+          sudo sed -i "s|--discover=yes|--discover=yes --substitute-urls='$URLS'|g" /etc/systemd/system/guix-daemon.service
+          cat /etc/systemd/system/guix-daemon.service
           sudo systemctl daemon-reload
           sudo systemctl restart guix-daemon
+          ps aux | grep guix-daemon
           
           guix pull
           git clone https://gitlab.com/nonguix/nonguix
