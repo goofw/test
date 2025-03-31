@@ -59,15 +59,15 @@ jobs:
           EOF
           
           guix pull
-          GUIX_PROFILE="/home/runner/.config/guix/current"
-          . "$GUIX_PROFILE/etc/profile"
-          hash guix
-          which guix
-          git clone https://gitlab.com/nonguix/nonguix
-          cd nonguix
-          image=$(guix system image --image-type=iso9660 nongnu/system/install.scm)
-          mv $image ~/guix-$(date +"%Y%m%d%H%M").iso
+          #GUIX_PROFILE="/home/runner/.config/guix/current"
+          #. "$GUIX_PROFILE/etc/profile"
+          #hash guix
+          #which guix
+          #git clone https://gitlab.com/nonguix/nonguix
+          #cd nonguix
+          #image=$(guix system image --image-type=iso9660 nongnu/system/install.scm)
+          #mv $image ~/guix-$(date +"%Y%m%d%H%M").iso
 
-      - uses: actions/upload-artifact@main
-        with:
-          path: ~/guix-*.iso
+      #- uses: actions/upload-artifact@main
+      #  with:
+      #    path: ~/guix-*.iso
