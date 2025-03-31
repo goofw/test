@@ -14,7 +14,10 @@ jobs:
           sudo apt install -y expect
           curl -fsSL "https://git.savannah.gnu.org/gitweb/?p=guix.git;a=blob_plain;f=etc/guix-install.sh;hb=HEAD" > guix.sh
           chmod +x guix.sh
-          expect -c "spawn ./guix.sh; expect nter; send \r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; interact"
+          sudo expect -c "spawn ./guix.sh; expect return; send \r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; expect \[Y\/n\]; send Y\r; interact"
+          exec ${SHELL} -il
+          guix install glibc-locales
+          export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
           
           mkdir -p ~/.config/guix
           cat > ~/.config/guix/channels.scm <<EOF
