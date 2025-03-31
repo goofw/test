@@ -11,12 +11,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          #curl -fsSL "https://git.savannah.gnu.org/gitweb/?p=guix.git;a=blob_plain;f=etc/guix-install.sh;hb=HEAD" > guix.sh
-          #chmod +x guix.sh
-          #tmux new -d sudo ./guix.sh
-          #sleep 2
-          #tmux send Enter
-          while tmux ls; do tmux capturep -p; sleep 10; tmux send Y Enter; done
+          curl -fsSL "https://git.savannah.gnu.org/gitweb/?p=guix.git;a=blob_plain;f=etc/guix-install.sh;hb=HEAD" > guix.sh
+          chmod +x guix.sh
+          tmux new -d
+          tmux send "sudo ./guix.sh" Enter
+          sleep 2
+          tmux send Enter
+          while true; do command -v guix && break || { sleep 10; tmux send Y Enter; tmux capturep -p; }; done
           guix install glibc-locales
           export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
           
