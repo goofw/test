@@ -11,15 +11,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -fsSL "https://git.savannah.gnu.org/gitweb/?p=guix.git;a=blob_plain;f=etc/guix-install.sh;hb=HEAD" > guix.sh
-          chmod +x guix.sh
-          tmux new -d
-          tmux send "sudo ./guix.sh" Enter
-          sleep 2
-          tmux send Enter
-          while true; do command -v guix && break || { sleep 10; tmux send Y Enter; tmux capturep -p; }; done
-          guix install glibc-locales
-          export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+          #curl -fsSL "https://git.savannah.gnu.org/gitweb/?p=guix.git;a=blob_plain;f=etc/guix-install.sh;hb=HEAD" > guix.sh
+          #chmod +x guix.sh
+          #tmux new -d
+          #tmux send "sudo ./guix.sh" Enter
+          #sleep 2
+          #tmux send Enter
+          #while true; do command -v guix && break || { sleep 10; tmux send Y Enter; tmux capturep -p; }; done
+          #guix install glibc-locales
+          #export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
+
+          sudo apt update
+          sudo apt install guix
           
           mkdir -p ~/.config/guix
           cat > ~/.config/guix/channels.scm <<EOF
@@ -34,8 +37,20 @@ jobs:
                      "2A39 3FFF 68F4 EF7A 3D29  12AF 6F51 20A0 22FB B2D5"))))
                  %default-channels)
           EOF
+
+          cat /etc/systemd/system/guix-daemon.service
+          wget https://substitutes.nonguix.org/signing-key.pub
+          sudo guix archive --authorize < signing-key.pub
+          sudo sed -i "s|--substitute-urls='https://bordeaux.guix.gnu.org https://ci.guix.gnu.org'|--substitute-urls='https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org'|g" /etc/systemd/system/guix-daemon.service
+          sudo systemctl daemon-reload
+          sudo systemctl restart guix-daemon.service
+          
           guix pull
           git clone https://gitlab.com/nonguix/nonguix
           cd nonguix
-          guix system image --image-type=iso9660 nongnu/system/install.scm
-          ls -al
+          image=$(guix system image --image-type=iso9660 nongnu/system/install.scm)
+          mv $image ~/guix-$(date +"%Y%m%d%H%M").iso
+
+      - uses: actions/upload-artifact@main
+        with:
+          path: ~/guix-*.iso
