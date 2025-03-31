@@ -5,12 +5,21 @@ on:
   push:
     paths:
       - '.github/workflows/guix.yml'
+  schedule:
+    - cron: "22 22 * * 2"
   
 jobs:
   guix:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/cache@main
+        with:
+          path: ~/.cache/guix
+          key: ${{ runner.os }}-guix-${{ github.run_id }}
+          restore-keys: ${{ runner.os }}-guix-
+          
       - run: |
+          # https://guix.gnu.org/manual/en/html_node/Installation.html
           curl -fsSL "https://git.savannah.gnu.org/gitweb/?p=guix.git;a=blob_plain;f=etc/guix-install.sh;hb=HEAD" > guix.sh
           chmod +x guix.sh
           tmux new -d
@@ -21,8 +30,19 @@ jobs:
           guix install glibc-locales
           export GUIX_LOCPATH="$HOME/.guix-profile/lib/locale"
 
-          #sudo apt update
-          #sudo apt install -y guix
+          # https://gitlab.com/nonguix/nonguix
+          # https://github.com/SystemCrafters/guix-installer
+          # https://github.com/PromyLOPh/guix-install-action
+          sudo systemctl status guix-daemon
+          cat /etc/systemd/system/guix-daemon.service
+          wget https://substitutes.nonguix.org/signing-key.pub
+          sudo guix archive --authorize < signing-key.pub
+          URLS="https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org"
+          sudo sed -i "s|--discover=yes|--discover=yes --substitute-urls='$URLS'|g" /etc/systemd/system/guix-daemon.service
+          cat /etc/systemd/system/guix-daemon.service
+          sudo systemctl daemon-reload
+          sudo systemctl restart guix-daemon
+          ps aux | grep guix-daemon
           
           mkdir -p ~/.config/guix
           cat > ~/.config/guix/channels.scm <<EOF
@@ -37,19 +57,12 @@ jobs:
                      "2A39 3FFF 68F4 EF7A 3D29  12AF 6F51 20A0 22FB B2D5"))))
                  %default-channels)
           EOF
-
-          sudo systemctl status guix-daemon
-          cat /etc/systemd/system/guix-daemon.service
-          wget https://substitutes.nonguix.org/signing-key.pub
-          sudo guix archive --authorize < signing-key.pub
-          URLS="https://ci.guix.gnu.org https://bordeaux.guix.gnu.org https://substitutes.nonguix.org"
-          sudo sed -i "s|--discover=yes|--discover=yes --substitute-urls='$URLS'|g" /etc/systemd/system/guix-daemon.service
-          cat /etc/systemd/system/guix-daemon.service
-          sudo systemctl daemon-reload
-          sudo systemctl restart guix-daemon
-          ps aux | grep guix-daemon
           
           guix pull
+          GUIX_PROFILE="/home/runner/.config/guix/current"
+          . "$GUIX_PROFILE/etc/profile"
+          hash guix
+          which guix
           git clone https://gitlab.com/nonguix/nonguix
           cd nonguix
           image=$(guix system image --image-type=iso9660 nongnu/system/install.scm)
