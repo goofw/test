@@ -1,0 +1,10 @@
+name: vscode
+
+on:
+  workflow_dispatch:
+  
+jobs:
+  vscode:
+    runs-on: macos-15-intel
+    steps:
+      - uses: fawazahmed0/action-debug-vscode@main
